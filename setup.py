@@ -15,5 +15,5 @@ setuptools.setup(
     url="https://github.com/tomas-cabrera/my-wheels",
     license='MIT',
     python_requires='>=3.8',
-    install_requires=[]
+    install_requires=["numpy","pandas","matplotlib","galpy"]
 )

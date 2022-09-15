@@ -1,0 +1,3 @@
+[submodule "mywheels/cmcutils/cmctoolkit"]
+	path = mywheels/cmcutils/cmctoolkit
+	url = https://github.com/NicholasRui/cmctoolkit
