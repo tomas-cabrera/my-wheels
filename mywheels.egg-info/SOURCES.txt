@@ -4,4 +4,5 @@ mywheels/__init__.py
 mywheels.egg-info/PKG-INFO
 mywheels.egg-info/SOURCES.txt
 mywheels.egg-info/dependency_links.txt
+mywheels.egg-info/requires.txt
 mywheels.egg-info/top_level.txt

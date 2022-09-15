@@ -1,0 +1,4 @@
+galpy
+matplotlib
+numpy
+pandas
