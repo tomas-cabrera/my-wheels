@@ -80,7 +80,7 @@ class _dat_file:
                                 By default, this swaps out the file name for "initial.conv.sh"
         @param  missing_ok      If True, continues if a name is not found in the df column names.
 
-        """ 
+        """
 
         # Make filename, if not specified
         if conv_fname == None:
@@ -89,7 +89,7 @@ class _dat_file:
         # Load unitdict
         unitdict = self._read_unitdict(conv_fname)
 
-        for n,u in names_units.items():
+        for n, u in names_units.items():
             # Check if the specified unit is in the df
             if n in self.df.columns:
                 # Check if the units have already been converted
@@ -111,10 +111,9 @@ class _dat_file:
         unitdict = cmctoolkit.make_unitdict(conv_file)
 
         return unitdict
-        
 
     def _parse_units_string(self, string, unitdict):
-        factor = 1.
+        factor = 1.0
         op = "*"
         for u in string.split():
             if u == "*":
@@ -131,6 +130,7 @@ class _dat_file:
                 raise Exception("Unrecognized sequence in string")
 
         return factor
+
 
 class dyn_dat(_dat_file):
     """! Reads the dyn.dat data. """
