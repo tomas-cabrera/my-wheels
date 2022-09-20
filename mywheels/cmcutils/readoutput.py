@@ -2,14 +2,13 @@
 
 ###############################################################################
 
-import inspect
 import numpy as np
 import pandas as pd
 
 ###############################################################################
 
 
-class _output_file:
+class _dat_file:
     """! The parent class for the individual files. """
 
     def __init__(
@@ -33,6 +32,7 @@ class _output_file:
             "names": names,
             "delimiter": " ",
             "skiprows": header_line_no + 1,
+            "low_memory": False,
         }
         pd_kwargs = {**pd_kwarg_defaults, **pd_kwargs}
 
@@ -50,15 +50,22 @@ class _output_file:
         with open(fname) as file:
             for li, l in enumerate(file):
                 if li == header_line_no:
-                    columns = l
+                    names = l
                     break
 
         # Split at whitespace
-        columns = columns.split()
+        names = names.split()
 
-        # Keep everything after the colon (using aliases if needed)
+        # Keep everything after the colon (using aliases if needed
         for ca in colon_aliases:
-            columns = [c.replace(ca, ":") for c in columns]
-        columns = [c.split(":")[1] for c in columns]
+            names = [c.replace(ca, ":") for c in names]
+        names = [c.split(":")[1] for c in names]
 
-        return columns
+        return names
+
+class dyn_dat(_dat_file):
+    """! Reads the dyn.dat data. """
+
+    def __init__(self, fname, **kwargs):
+        """! Reads the data, using some defaults for the dyn_dat files. """
+        super().__init__(fname, header_line_no=1, colon_aliases=["."], **kwargs)
