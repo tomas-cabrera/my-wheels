@@ -27,7 +27,7 @@ class CMCCatalog:
 
         """
 
-        # Store things 
+        # Store things
         self.path = path
         self.mp_nprocs = mp_nprocs
 
@@ -141,10 +141,11 @@ class CMCCatalog:
         # Make df out of output
         dat_data = pd.concat(dat_data)
         # Get a row for every row in dat_data, applying the new index
-        self.df = pd.DataFrame([self.df.loc[k] for k,_ in dat_data.index], index=dat_data.index)
+        self.df = pd.DataFrame(
+            [self.df.loc[k] for k, _ in dat_data.index], index=dat_data.index
+        )
         # Join the two dfs
         self.df = self.df.join(dat_data)
-                
 
     def _select_dat_data(self, fname, dat_file, timesteps, dat_kwargs={}):
         """! Method for getting the dat data for one model, for parallelization across models. """
@@ -154,7 +155,9 @@ class CMCCatalog:
         print(fname)
 
         # Get dat type
-        out_type = dat_file.split(".")[1]  # TODO: this is not robust, since at least one .dat file has something like "0.1" in the name
+        out_type = dat_file.split(".")[
+            1
+        ]  # TODO: this is not robust, since at least one .dat file has something like "0.1" in the name
 
         # Load time data too
         tkeys = {"dyn": "t"}
