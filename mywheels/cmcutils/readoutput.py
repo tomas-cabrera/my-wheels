@@ -14,15 +14,16 @@ class _dat_file:
     """! The parent class for the individual files. """
 
     def __init__(
-        self, path, header_line_no=0, colon_aliases=[], pd_kwargs={},
+        self, path, header_line_no=0, colon_aliases=[], pd_kwargs={}, convert_units={},
     ):
         """! Read the data.
 
-        @param  path           The path to the output file.
+        @param  path            The path to the output file.
         @param  header_line_no  The line to read the columns from.
         @param  colon_aliases   List-like of character to replace with colons (e.g. ["."] for dyn.dat files)
         @param  pd_kwargs       Dictionary of keyword arguments to pass to pd.read_csv when loading data.
                                 Merges the specified dict with the default to preserve defaults.
+        @param  convert_units   Dictionary of units to convert (see _dat_file.convert_units)
 
         """
 
@@ -46,6 +47,9 @@ class _dat_file:
 
         # Note that units are not converted from original values
         self.units_converted = {n: False for n in self.df.columns}
+
+        # Convert any specified units on load
+        self.convert_units(convert_units)
 
     def _get_column_names(self, path, header_line_no, colon_aliases=[]):
         """! Parses the specified line in the file to get the header names.

@@ -1,4 +1,4 @@
-galpy
-matplotlib
 numpy
 pandas
+matplotlib
+galpy
