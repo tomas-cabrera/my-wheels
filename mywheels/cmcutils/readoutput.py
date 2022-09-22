@@ -14,11 +14,11 @@ class _dat_file:
     """! The parent class for the individual files. """
 
     def __init__(
-        self, fname, header_line_no=0, colon_aliases=[], pd_kwargs={},
+        self, path, header_line_no=0, colon_aliases=[], pd_kwargs={},
     ):
         """! Read the data.
 
-        @param  fname           The path to the output file.
+        @param  path           The path to the output file.
         @param  header_line_no  The line to read the columns from.
         @param  colon_aliases   List-like of character to replace with colons (e.g. ["."] for dyn.dat files)
         @param  pd_kwargs       Dictionary of keyword arguments to pass to pd.read_csv when loading data.
@@ -26,11 +26,11 @@ class _dat_file:
 
         """
 
-        # Save fname
-        self.fname = fname
+        # Save path
+        self.path = path
 
         # Get the column names
-        names = self._get_column_names(fname, header_line_no, colon_aliases)
+        names = self._get_column_names(path, header_line_no, colon_aliases)
 
         # Merge specified pd_kwargs dist with default
         pd_kwarg_defaults = {
@@ -42,12 +42,12 @@ class _dat_file:
         pd_kwargs = {**pd_kwarg_defaults, **pd_kwargs}
 
         # Load data, passing usecols to select particular columns
-        self.df = pd.read_csv(fname, **pd_kwargs,)
+        self.df = pd.read_csv(path, **pd_kwargs,)
 
         # Note that units are not converted from original values
         self.units_converted = {n: False for n in self.df.columns}
 
-    def _get_column_names(self, fname, header_line_no, colon_aliases=[]):
+    def _get_column_names(self, path, header_line_no, colon_aliases=[]):
         """! Parses the specified line in the file to get the header names.
 
         @return columns     The column names.
@@ -55,7 +55,7 @@ class _dat_file:
         """
 
         # Read the header line
-        with open(fname) as file:
+        with open(path) as file:
             for li, l in enumerate(file):
                 if li == header_line_no:
                     names = l
@@ -84,7 +84,7 @@ class _dat_file:
 
         # Make filename, if not specified
         if conv_fname == None:
-            conv_fname = "/".join((*self.fname.split("/")[:-1], "initial.conv.sh"))
+            conv_fname = "/".join((*self.path.split("/")[:-1], "initial.conv.sh"))
 
         # Load unitdict
         unitdict = self._read_unitdict(conv_fname)
@@ -135,9 +135,9 @@ class _dat_file:
 class dyn_dat(_dat_file):
     """! Reads the dyn.dat data. """
 
-    def __init__(self, fname, **kwargs):
+    def __init__(self, path, **kwargs):
         """! Reads the data, using some defaults for the dyn_dat files. """
-        super().__init__(fname, header_line_no=1, colon_aliases=["."], **kwargs)
+        super().__init__(path, header_line_no=1, colon_aliases=["."], **kwargs)
 
     def convert_tunits(self, **kwargs):
         """! By default converts the t and Dt columns into Myr. """
