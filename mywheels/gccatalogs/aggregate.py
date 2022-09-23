@@ -47,8 +47,8 @@ class GCCatalog:
         cmc_models = cmccat.CMCCatalog(cmc_path, mp_nprocs=4, **cmc_kwargs)
         cmc_models.add_dat_timesteps(
             "initial.dyn.dat",
-            tmin=10000.,
-            tmax=13500.,
+            tmin=10000.0,
+            tmax=13500.0,
             tnum=10,
             dat_kwargs={
                 "pd_kwargs": {"usecols": ["M", "rc_spitzer", "r_h"]},
@@ -77,35 +77,49 @@ class GCCatalog:
             # Set rg bin boundaries
             if rgi == 0:
                 rglo = -np.inf
-                rghi = (rg + rgs_cmc[rgi+1])/2.
+                rghi = (rg + rgs_cmc[rgi + 1]) / 2.0
             elif rgi == len(rgs_cmc) - 1:
-                rglo = rghi 
+                rglo = rghi
                 rghi = np.inf
             else:
-                rglo = rghi 
-                rghi = (rg + rgs_cmc[rgi+1])/2.
+                rglo = rghi
+                rghi = (rg + rgs_cmc[rgi + 1]) / 2.0
             for mi, met in enumerate(mets_cmc):
                 # Set metallicity bin boundaries
                 if mi == 0:
                     metlo = -np.inf
-                    methi = (met + mets_cmc[mi+1])/2.
+                    methi = (met + mets_cmc[mi + 1]) / 2.0
                 elif mi == len(mets_cmc) - 1:
-                    metlo = methi 
+                    metlo = methi
                     methi = np.inf
                 else:
-                    metlo = methi 
-                    methi = (met + mets_cmc[mi+1])/2.
+                    metlo = methi
+                    methi = (met + mets_cmc[mi + 1]) / 2.0
 
                 # Select MW GCs in range, and CMC models
-                clusters_rm = self.df[(self.df.R_GC >= rglo) & (self.df.R_GC < rghi) & (self.df["[Fe/H]"] >= metlo) & (self.df["[Fe/H]"] < methi)]
-                models_rm = cmc_models.df[(cmc_models.df.rg == rg) & (cmc_models.df["[Fe/H]"] == met)]
-                print(clusters_rm) 
-                print(models_rm) 
+                clusters_rm = self.df[
+                    (self.df.R_GC >= rglo)
+                    & (self.df.R_GC < rghi)
+                    & (self.df["[Fe/H]"] >= metlo)
+                    & (self.df["[Fe/H]"] < methi)
+                ]
+                models_rm = cmc_models.df[
+                    (cmc_models.df.rg == rg) & (cmc_models.df["[Fe/H]"] == met)
+                ]
+                print(clusters_rm)
+                print(models_rm)
 
                 # Iterate over comparison parameters, calculating distances for each
-                distances = pd.DataFrame(0., index=clusters_rm.index, columns=models_rm.index)
+                distances = pd.DataFrame(
+                    0.0, index=clusters_rm.index, columns=models_rm.index
+                )
                 for p in params_compare:
-                    distances += np.subtract.outer(clusters_rm[p].to_numpy(), models_rm[p].to_numpy())**2
+                    distances += (
+                        np.subtract.outer(
+                            clusters_rm[p].to_numpy(), models_rm[p].to_numpy()
+                        )
+                        ** 2
+                    )
                 print(distances)
 
                 try:

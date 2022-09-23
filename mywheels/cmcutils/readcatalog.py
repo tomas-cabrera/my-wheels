@@ -183,7 +183,9 @@ class CMCCatalog:
         dat.df.set_index(["fname", "tcount"], inplace=True)
 
         # Throw out all times out of range, returning the empty df if no timesteps remain
-        dat.df = dat.df[(dat.df[tkey] >= timesteps.min()) & (dat.df[tkey] <= timesteps.max())]
+        dat.df = dat.df[
+            (dat.df[tkey] >= timesteps.min()) & (dat.df[tkey] <= timesteps.max())
+        ]
         if dat.df.shape[0] == 0:
             return dat.df
 
