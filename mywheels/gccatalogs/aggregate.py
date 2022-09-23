@@ -45,10 +45,11 @@ class GCCatalog:
         import mywheels.cmcutils.readcatalog as cmccat
 
         cmc_models = cmccat.CMCCatalog(cmc_path, mp_nprocs=4, **cmc_kwargs)
-        cmc_models.df = cmc_models.df.iloc[:8]
         cmc_models.add_dat_timesteps(
             "initial.dyn.dat",
-            tnum=3,
+            tmin=10000.,
+            tmax=13500.,
+            tnum=10,
             dat_kwargs={
                 "pd_kwargs": {"usecols": ["M", "rc_spitzer", "r_h"]},
                 "convert_units": {"M": "msun", "rc_spitzer": "pc", "r_h": "pc"},
@@ -58,11 +59,66 @@ class GCCatalog:
         cmc_models.parse_names()
 
         # Calculate columns to match
+        cmc_models.df["[Fe/H]"] = np.log10(cmc_models.df["Z"] / 0.02)
         self.df["logM"] = np.log10(self.df["Mass"])
         cmc_models.df["logM"] = np.log10(cmc_models.df["M"])
         self.df["rc/rh"] = self.df["rc"] / self.df["rh,m"]
         cmc_models.df["rc/rh"] = cmc_models.df["rc_spitzer"] / cmc_models.df["r_h"]
 
-        # TODO: Can split MW GCs into Rg x Z blocks (3 x 3 = 9 blocks), and can process each block wholesale
-        #       Probably just hardcode bins (e.g. [Fe/H]: <-1.5, -1.5 \le x < -0.5, and -0.5 \le x)
-        # Also can calculate distances wholesale, and then filter by Rg x Z (but ~9x the computation)
+        self.df.to_csv("gcs.dat")
+        cmc_models.df.to_csv("cmcs.dat")
+
+        # Iterate through rg, met bins (bin edges are average of adjacent CMC rg values)
+        rgs_cmc = np.sort(cmc_models.df.rg.unique())
+        mets_cmc = np.sort(cmc_models.df["[Fe/H]"].unique())
+        params_compare = ["logM", "rc/rh"]
+        dfs = []
+        for rgi, rg in enumerate(rgs_cmc):
+            # Set rg bin boundaries
+            if rgi == 0:
+                rglo = -np.inf
+                rghi = (rg + rgs_cmc[rgi+1])/2.
+            elif rgi == len(rgs_cmc) - 1:
+                rglo = rghi 
+                rghi = np.inf
+            else:
+                rglo = rghi 
+                rghi = (rg + rgs_cmc[rgi+1])/2.
+            for mi, met in enumerate(mets_cmc):
+                # Set metallicity bin boundaries
+                if mi == 0:
+                    metlo = -np.inf
+                    methi = (met + mets_cmc[mi+1])/2.
+                elif mi == len(mets_cmc) - 1:
+                    metlo = methi 
+                    methi = np.inf
+                else:
+                    metlo = methi 
+                    methi = (met + mets_cmc[mi+1])/2.
+
+                # Select MW GCs in range, and CMC models
+                clusters_rm = self.df[(self.df.R_GC >= rglo) & (self.df.R_GC < rghi) & (self.df["[Fe/H]"] >= metlo) & (self.df["[Fe/H]"] < methi)]
+                models_rm = cmc_models.df[(cmc_models.df.rg == rg) & (cmc_models.df["[Fe/H]"] == met)]
+                print(clusters_rm) 
+                print(models_rm) 
+
+                # Iterate over comparison parameters, calculating distances for each
+                distances = pd.DataFrame(0., index=clusters_rm.index, columns=models_rm.index)
+                for p in params_compare:
+                    distances += np.subtract.outer(clusters_rm[p].to_numpy(), models_rm[p].to_numpy())**2
+                print(distances)
+
+                try:
+                    matching = distances.idxmin(axis=1)
+                except:
+                    continue
+                print(matching)
+                clusters_rm["fname"] = [x[0] for x in matching]
+                clusters_rm["tcount"] = [x[1] for x in matching]
+                print(clusters_rm)
+
+                dfs.append(clusters_rm)
+
+        self.df = pd.concat(dfs)
+        self.df.to_csv("gcs-cmc.dat")
+        print(self.df)

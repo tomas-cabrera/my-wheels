@@ -178,14 +178,19 @@ class CMCCatalog:
         # Convert time
         dat.convert_units({tkey: "myr"})
 
+        # Promote tcount to index
+        dat.df["fname"] = fname
+        dat.df.set_index(["fname", "tcount"], inplace=True)
+
+        # Throw out all times out of range, returning the empty df if no timesteps remain
+        dat.df = dat.df[(dat.df[tkey] >= timesteps.min()) & (dat.df[tkey] <= timesteps.max())]
+        if dat.df.shape[0] == 0:
+            return dat.df
+
         # Select times and respective data
         time_indices = np.abs(
             np.subtract.outer(dat.df[tkey].to_numpy(), timesteps)
         ).argmin(axis=0)
         dat.df = dat.df.iloc[time_indices]
-
-        # Promote tcount to index
-        dat.df["fname"] = fname
-        dat.df.set_index(["fname", "tcount"], inplace=True)
 
         return dat.df
