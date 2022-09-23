@@ -53,7 +53,7 @@ class GCCatalog:
         # Load cmc catalog, and dyn.dat data
         import mywheels.cmcutils.readcatalog as cmccat
 
-        cmc_models = cmccat.CMCCatalog(cmc_path, mp_nprocs=4, **cmc_kwargs)
+        cmc_models = cmccat.CMCCatalog(cmc_path, extension=".tar.gz", mp_nprocs=128, **cmc_kwargs)
         cmc_models.add_dat_timesteps(
             "initial.dyn.dat",
             tmin=10000.0,
@@ -65,7 +65,7 @@ class GCCatalog:
             },
             **dyn_kwargs,
         )
-        cmc_models.parse_names()
+        cmc_models.parse_names(replace={"_v2": "", ".tar.gz": ""})
 
         # Calculate columns to match
         cmc_models.df["[Fe/H]"] = np.log10(cmc_models.df["Z"] / 0.02)
