@@ -53,7 +53,7 @@ class GCCatalog:
         # Load cmc catalog, and dyn.dat data
         import mywheels.cmcutils.readcatalog as cmccat
 
-        cmc_models = cmccat.CMCCatalog(cmc_path, mp_nprocs=4, **cmc_kwargs)
+        cmc_models = cmccat.CMCCatalog(cmc_path, extension=".tar.gz", mp_nprocs=128, **cmc_kwargs)
         cmc_models.add_dat_timesteps(
             "initial.dyn.dat",
             tmin=10000.0,
@@ -65,7 +65,7 @@ class GCCatalog:
             },
             **dyn_kwargs,
         )
-        cmc_models.parse_names()
+        cmc_models.parse_names(replace={"_v2": "", ".tar.gz": ""})
 
         # Calculate columns to match
         cmc_models.df["[Fe/H]"] = np.log10(cmc_models.df["Z"] / 0.02)
@@ -138,7 +138,8 @@ class GCCatalog:
                 print(matching)
                 clusters_rm["fname"] = [x[0] for x in matching]
                 clusters_rm["tcount"] = [x[1] for x in matching]
-                clusters_rm["t"] = [cmc_models.df.loc[tc, "t"] for tc in clusters_rm.tcount]
+                print("test", [cmc_models.df.at[i, "t"] for i in matching])
+                clusters_rm["t"] = [cmc_models.df.at[i, "t"] for i in matching]
                 print(clusters_rm)
 
                 dfs.append(clusters_rm)
