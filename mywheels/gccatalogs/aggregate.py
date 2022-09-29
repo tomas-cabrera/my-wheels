@@ -9,29 +9,38 @@ import pandas as pd
 
 
 class GCCatalog:
-    def __init__(self, baumgardt_path, harris_path):
+    def __init__(self, paths, pd_kwargs={}):
         """! Basic things for now."""
 
-        # Load cleaned Baumgardt data
-        df_baumgardt = pd.read_csv(
-            baumgardt_path,
-            usecols=["Cluster", "Mass", "rc", "rh,m", "R_GC"],
-            delim_whitespace=True,
-        )
+        # If a single path is specified, assume it is a loadable csv
+        if type(paths) == str:
+            self.df = pd.read_csv(paths, **pd_kwargs)
 
-        # Load cleaned Harris data (for metallicities)
-        # "cleaned" = ID renamed to Cluster, names edited to match Baumgardt & Holger, Z=-100 if there's no metallicity measurement (these clusters are also the ones with wt=0 i.e. no stellar metallicities have been measured)
-        df_harris = pd.read_csv(
-            harris_path, usecols=["Cluster", "[Fe/H]"], delim_whitespace=True
-        )
-        # drop rows with [Fe/H]=-100
-        df_harris = df_harris[df_harris["[Fe/H]"] != -100.0]
+        # If a list of paths is specified, assume it they are baumgardt and harris catalogs 
+        elif type(paths) == list:
+            # Set paths
+            baumgardt_path, harris_path = paths
 
-        # Merge the two datasets
-        self.df = pd.merge(df_baumgardt, df_harris, how="inner", on="Cluster")
+            # Load cleaned Baumgardt data
+            df_baumgardt = pd.read_csv(
+                baumgardt_path,
+                usecols=["Cluster", "Mass", "rc", "rh,m", "R_GC"],
+                delim_whitespace=True,
+            )
 
-        # Set cluster name as index
-        self.df.set_index("Cluster", inplace=True)
+            # Load cleaned Harris data (for metallicities)
+            # "cleaned" = ID renamed to Cluster, names edited to match Baumgardt & Holger, Z=-100 if there's no metallicity measurement (these clusters are also the ones with wt=0 i.e. no stellar metallicities have been measured)
+            df_harris = pd.read_csv(
+                harris_path, usecols=["Cluster", "[Fe/H]"], delim_whitespace=True
+            )
+            # drop rows with [Fe/H]=-100
+            df_harris = df_harris[df_harris["[Fe/H]"] != -100.0]
+
+            # Merge the two datasets
+            self.df = pd.merge(df_baumgardt, df_harris, how="inner", on="Cluster")
+
+            # Set cluster name as index
+            self.df.set_index("Cluster", inplace=True)
 
     def match_to_cmc_models(
         self, cmc_path, cmc_kwargs={}, dyn_kwargs={},
@@ -51,8 +60,8 @@ class GCCatalog:
             tmax=13500.0,
             tnum=10,
             dat_kwargs={
-                "pd_kwargs": {"usecols": ["M", "rc_spitzer", "r_h"]},
-                "convert_units": {"M": "msun", "rc_spitzer": "pc", "r_h": "pc"},
+                "pd_kwargs": {"usecols": ["t", "M", "rc_spitzer", "r_h"]},
+                "convert_units": {"t": "myr", "M": "msun", "rc_spitzer": "pc", "r_h": "pc"},
             },
             **dyn_kwargs,
         )
@@ -129,6 +138,7 @@ class GCCatalog:
                 print(matching)
                 clusters_rm["fname"] = [x[0] for x in matching]
                 clusters_rm["tcount"] = [x[1] for x in matching]
+                clusters_rm["t"] = [cmc_models.df.loc[tc, "t"] for tc in clusters_rm.tcount]
                 print(clusters_rm)
 
                 dfs.append(clusters_rm)
